@@ -6,7 +6,6 @@
 <title>私の被爆ノート — 証言の全体像</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
 <style>
   :root {
     --bg: #ffffff;
@@ -15,7 +14,6 @@
     --text-secondary: #787774;
     --text-tertiary: #9b9a97;
     --tag-bg: #f1f0ef;
-    --accent: #37352f;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -52,9 +50,7 @@
     font-weight: 300;
   }
 
-  .section {
-    margin-bottom: 56px;
-  }
+  .section { margin-bottom: 56px; }
 
   .section-title {
     font-family: "Noto Serif JP", serif;
@@ -70,65 +66,51 @@
     font-weight: 300;
   }
 
-  .divider {
-    height: 1px;
-    background: var(--border);
-    margin-bottom: 32px;
-  }
+  .divider { height: 1px; background: var(--border); margin-bottom: 32px; }
 
-  /* テーマバーチャート */
-  .bar-container {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
+  .bar-container { display: flex; flex-direction: column; gap: 14px; }
 
   .bar-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
     animation: fadeIn 0.4s ease both;
   }
 
   .bar-label {
-    font-size: 0.82rem;
+    font-size: 0.85rem;
     color: var(--text-primary);
-    width: 160px;
+    width: 180px;
     flex-shrink: 0;
     text-align: right;
     font-weight: 300;
+    font-family: "Noto Serif JP", serif;
   }
 
   .bar-track {
     flex: 1;
-    height: 8px;
+    height: 10px;
     background: var(--tag-bg);
-    border-radius: 4px;
+    border-radius: 5px;
     overflow: hidden;
   }
 
   .bar-fill {
     height: 100%;
     background: #37352f;
-    border-radius: 4px;
-    transition: width 0.8s ease;
+    border-radius: 5px;
+    width: 0;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .bar-value {
-    font-size: 0.78rem;
+    font-size: 0.80rem;
     color: var(--text-tertiary);
-    width: 48px;
+    width: 56px;
     flex-shrink: 0;
     font-weight: 300;
   }
 
-  /* ワードクラウド */
-  #wordcloud {
-    width: 100%;
-    height: 360px;
-  }
-
-  /* ローディング */
   .loading {
     text-align: center;
     padding: 60px 0;
@@ -167,11 +149,18 @@
   }
   .nav-link:hover { color: var(--text-secondary); }
 
+  .total-note {
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+    margin-top: 24px;
+    font-weight: 300;
+  }
+
   @media (max-width: 768px) {
     .page { padding: 0 24px 80px; }
     .page-title { font-size: 1.6rem; }
     .page-header { padding: 48px 0 32px; }
-    .bar-label { width: 100px; font-size: 0.75rem; }
+    .bar-label { width: 110px; font-size: 0.78rem; }
   }
 </style>
 </head>
@@ -192,24 +181,15 @@
   </div>
 
   <div id="content" style="display:none">
-
-    <!-- テーマ分布 -->
     <div class="section">
       <div class="section-title">何について語られているか</div>
-      <div class="section-desc">12のテーマタグ別チャンク数</div>
+      <div class="section-desc">12のテーマタグ別チャンク数。1つの証言に複数のテーマが含まれる場合があります。</div>
       <div class="divider"></div>
       <div class="bar-container" id="themeChart"></div>
+      <div class="total-note" id="totalNote"></div>
     </div>
-
-    <!-- ワードクラウド -->
-    <div class="section">
-      <div class="section-title">証言の中で多く使われた言葉</div>
-      <div class="section-desc">全証言テキストから頻出語を抽出（上位100語）</div>
-      <div class="divider"></div>
-      <svg id="wordcloud"></svg>
-    </div>
-
   </div>
+
 </div>
 
 <script>
@@ -229,7 +209,6 @@ async function loadStats() {
     document.getElementById("content").style.display = "block";
 
     renderThemes(data.themes);
-    renderWordCloud(data.words);
 
   } catch(e) {
     document.getElementById("loading").textContent = "サーバーに接続できません";
@@ -240,81 +219,30 @@ function renderThemes(themes) {
   const container = document.getElementById("themeChart");
   const entries = Object.entries(themes).sort((a,b) => b[1] - a[1]);
   const max = entries[0][1];
+  const total = entries.reduce((s, e) => s + e[1], 0);
 
   container.innerHTML = entries.map(([label, count], i) => `
-    <div class="bar-row" style="animation-delay:${i*0.05}s">
+    <div class="bar-row" style="animation-delay:${i*0.06}s">
       <div class="bar-label">${label}</div>
       <div class="bar-track">
-        <div class="bar-fill" style="width:${(count/max*100).toFixed(1)}%"></div>
+        <div class="bar-fill" id="bar-${i}"></div>
       </div>
-      <div class="bar-value">${count.toLocaleString()}</div>
+      <div class="bar-value">${count.toLocaleString()} 件</div>
     </div>
   `).join("");
-}
 
-function renderWordCloud(words) {
-  const entries = Object.entries(words);
-  const maxCount = Math.max(...entries.map(e => e[1]));
-  const minCount = Math.min(...entries.map(e => e[1]));
-
-  const svg = d3.select("#wordcloud");
-  const width = document.getElementById("wordcloud").parentElement.offsetWidth;
-  const height = 360;
-  svg.attr("width", width).attr("height", height);
-
-  // フォントサイズのスケール
-  const scale = d3.scaleLinear()
-    .domain([minCount, maxCount])
-    .range([12, 52]);
-
-  // グレースケールのカラースケール
-  const colorScale = d3.scaleLinear()
-    .domain([minCount, maxCount])
-    .range(["#b0aca6", "#37352f"]);
-
-  // シンプルな配置（力指向）
-  const nodes = entries.map(([word, count]) => ({
-    word,
-    count,
-    fontSize: scale(count),
-    color: colorScale(count)
-  }));
-
-  // ランダム配置から始めてシミュレーション
-  nodes.forEach(n => {
-    n.x = width / 2 + (Math.random() - 0.5) * width * 0.6;
-    n.y = height / 2 + (Math.random() - 0.5) * height * 0.6;
+  // アニメーション（少し遅らせてからバーを伸ばす）
+  requestAnimationFrame(() => {
+    entries.forEach(([label, count], i) => {
+      setTimeout(() => {
+        const bar = document.getElementById(`bar-${i}`);
+        if (bar) bar.style.width = `${(count / max * 100).toFixed(1)}%`;
+      }, i * 60);
+    });
   });
 
-  const simulation = d3.forceSimulation(nodes)
-    .force("center", d3.forceCenter(width / 2, height / 2))
-    .force("charge", d3.forceManyBody().strength(-8))
-    .force("collision", d3.forceCollide(d => d.fontSize * 0.8))
-    .stop();
-
-  // 静的に計算
-  for (let i = 0; i < 120; i++) simulation.tick();
-
-  const texts = svg.selectAll("text")
-    .data(nodes)
-    .enter()
-    .append("text")
-    .attr("x", d => Math.max(d.fontSize, Math.min(width - d.fontSize, d.x)))
-    .attr("y", d => Math.max(d.fontSize, Math.min(height - d.fontSize, d.y)))
-    .attr("text-anchor", "middle")
-    .attr("dominant-baseline", "middle")
-    .style("font-family", "'Noto Serif JP', serif")
-    .style("font-size", d => `${d.fontSize}px`)
-    .style("fill", d => d.color)
-    .style("font-weight", d => d.count > (maxCount * 0.5) ? "500" : "300")
-    .style("opacity", 0)
-    .text(d => d.word);
-
-  // フェードイン
-  texts.transition()
-    .delay((d, i) => i * 8)
-    .duration(400)
-    .style("opacity", 1);
+  document.getElementById("totalNote").textContent =
+    `合計 ${total.toLocaleString()} タグ（8,597チャンク中）`;
 }
 
 loadStats();
