@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>私の被爆ノート — 証言を探す</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --border: #e9e9e7;
+    --border-hover: #c9c9c4;
+    --text-primary: #37352f;
+    --text-secondary: #787774;
+    --text-tertiary: #9b9a97;
+    --accent: #37352f;
+    --tag-bg: #f1f0ef;
+    --tag-text: #787774;
+    --card-hover: #fbfbfa;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Noto Sans JP", sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 0 96px; }
+
+  .page-header {
+    padding: 80px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 40px;
+  }
+
+  .page-icon { font-size: 48px; margin-bottom: 16px; line-height: 1; }
+
+  .page-title {
+    font-family: "Noto Serif JP", serif;
+    font-size: 2.2rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+
+  .page-description {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  .search-section { margin-bottom: 32px; }
+
+  .search-label {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+  }
+
+  .search-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .search-input {
+    flex: 1;
+    min-width: 200px;
+    height: 36px;
+    padding: 0 12px;
+    font-size: 0.9rem;
+    font-family: "Noto Sans JP", sans-serif;
+    font-weight: 300;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+
+  .search-input::placeholder { color: var(--text-tertiary); }
+  .search-input:focus {
+    border-color: var(--border-hover);
+    box-shadow: 0 0 0 2px rgba(55,53,47,0.08);
+  }
+
+  select.ctrl {
+    height: 36px;
+    padding: 0 10px;
+    font-size: 0.85rem;
+    font-family: "Noto Sans JP", sans-serif;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .search-btn {
+    height: 36px;
+    padding: 0 16px;
+    font-size: 0.85rem;
+    font-family: "Noto Sans JP", sans-serif;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.12s;
+  }
+
+  .search-btn:hover { opacity: 0.85; }
+  .search-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .hints { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .hint {
+    height: 26px;
+    padding: 0 10px;
+    font-size: 0.78rem;
+    font-family: "Noto Sans JP", sans-serif;
+    font-weight: 300;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.1s;
+    line-height: 26px;
+  }
+
+  .hint:hover { background: #e9e8e4; }
+
+  /* ステータス＋並べ替えバー */
+  .control-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    min-height: 28px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .status-text { font-size: 0.82rem; color: var(--text-tertiary); }
+
+  .sort-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .sort-label { font-size: 0.78rem; color: var(--text-tertiary); white-space: nowrap; }
+
+  .loading-dots { display: inline-flex; gap: 4px; align-items: center; }
+  .loading-dots span {
+    width: 5px; height: 5px;
+    background: var(--text-tertiary);
+    border-radius: 50%;
+    animation: dot-pulse 1.2s ease-in-out infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dot-pulse {
+    0%,80%,100% { opacity:0.2; transform:scale(0.8); }
+    40% { opacity:1; transform:scale(1); }
+  }
+
+  .divider { height: 1px; background: var(--border); margin-bottom: 8px; }
+
+  .results-list { display: flex; flex-direction: column; padding-bottom: 120px; }
+
+  .card {
+    padding: 16px 12px;
+    margin: 0 -12px;
+    border-bottom: 1px solid var(--border);
+    border-radius: 3px;
+    transition: background 0.1s;
+    animation: fadeIn 0.2s ease both;
+  }
+
+  .card:hover { background: var(--card-hover); }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(4px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .card-top {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+  }
+
+  .card-name {
+    font-family: "Noto Serif JP", serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+  }
+
+  .card-meta-item { font-size: 0.78rem; color: var(--text-tertiary); }
+  .card-meta-dot { color: var(--border); font-size: 0.7rem; }
+  .card-date { font-size: 0.75rem; color: var(--text-tertiary); margin-left: auto; }
+
+  .card-text {
+    font-family: "Noto Serif JP", serif;
+    font-size: 0.88rem;
+    font-weight: 300;
+    line-height: 1.9;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+  }
+
+  .card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .card-themes { display: flex; flex-wrap: wrap; gap: 4px; }
+
+  .theme-tag {
+    padding: 2px 8px;
+    background: var(--tag-bg);
+    border-radius: 3px;
+    font-size: 0.72rem;
+    color: var(--tag-text);
+    font-weight: 300;
+  }
+
+  .card-link { font-size: 0.75rem; color: var(--text-tertiary); text-decoration: none; }
+  .card-link:hover { color: var(--text-secondary); }
+
+  .relevance-bar {
+    width: 40px; height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .relevance-fill { height: 100%; background: #a8a39a; border-radius: 2px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px 0;
+    color: var(--text-tertiary);
+    font-size: 0.88rem;
+  }
+
+  .error-state {
+    padding: 14px 16px;
+    background: #fdf2f2;
+    border: 1px solid #f5c2c2;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #c0392b;
+  }
+
+  @media (max-width: 768px) {
+    .page { padding: 0 24px; }
+    .page-title { font-size: 1.6rem; }
+    .page-header { padding: 48px 0 32px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-icon">📖</div>
+    <h1 class="page-title">私の被爆ノート　証言を探す</h1>
+    <p class="page-description">長崎新聞に掲載された1,243人の証言から、自由なことばで検索できます</p>
+  </div>
+
+  <div class="search-section">
+    <div class="search-label">キーワードまたは文章で検索</div>
+    <div class="search-row">
+      <input class="search-input" type="text" id="query"
+        placeholder="例：爆発の瞬間に何が起きたのか" autocomplete="off" />
+      <select class="ctrl" id="count">
+        <option value="5">5件</option>
+        <option value="10" selected>10件</option>
+        <option value="20">20件</option>
+        <option value="30">30件</option>
+        <option value="200">全件表示</option>
+      </select>
+      <button class="search-btn" id="searchBtn" onclick="doSearch()">検索</button>
+    </div>
+    <div class="hints">
+      <button class="hint" onclick="setQuery('爆発の瞬間')">爆発の瞬間</button>
+      <button class="hint" onclick="setQuery('家族を失った')">家族を失った</button>
+      <button class="hint" onclick="setQuery('地獄のような光景')">地獄のような光景</button>
+      <button class="hint" onclick="setQuery('黒い雨')">黒い雨</button>
+      <button class="hint" onclick="setQuery('平和への願い')">平和への願い</button>
+      <button class="hint" onclick="setQuery('語り継ぐ使命')">語り継ぐ使命</button>
+      <button class="hint" onclick="setQuery('核兵器廃絶')">核兵器廃絶</button>
+      <button class="hint" onclick="setQuery('戦後の差別や偏見')">戦後の差別・偏見</button>
+      <button class="hint" onclick="setQuery('生き残った罪悪感')">生き残った罪悪感</button>
+      <button class="hint" onclick="setQuery('子どもたちへのメッセージ')">子どもへのメッセージ</button>
+    </div>
+  </div>
+
+  <div class="control-bar">
+    <div class="status-text" id="status"></div>
+    <div class="sort-row" id="sortRow" style="display:none">
+      <span class="sort-label">並べ替え</span>
+      <select class="ctrl" id="sortKey" onchange="applySort()">
+        <option value="similarity">合致率（高い順）</option>
+        <option value="date_desc">掲載日（新しい順）</option>
+        <option value="date_asc">掲載日（古い順）</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="divider" id="divider" style="display:none"></div>
+  <div class="results-list" id="results"></div>
+
+</div>
+<script>
+const API = "http://localhost:5001";
+let allResults = [];
+
+function setQuery(text) {
+  document.getElementById("query").value = text;
+  doSearch();
+}
+
+document.getElementById("query").addEventListener("keydown", e => {
+  if (e.key === "Enter") doSearch();
+});
+
+async function doSearch() {
+  const query = document.getElementById("query").value.trim();
+  if (!query) return;
+
+  const count = parseInt(document.getElementById("count").value);
+  const btn = document.getElementById("searchBtn");
+  const status = document.getElementById("status");
+  const results = document.getElementById("results");
+  const divider = document.getElementById("divider");
+  const sortRow = document.getElementById("sortRow");
+
+  btn.disabled = true;
+  status.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+  results.innerHTML = "";
+  divider.style.display = "none";
+  sortRow.style.display = "none";
+  allResults = [];
+
+  try {
+    const res = await fetch(`${API}/search`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, count })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      status.textContent = "";
+      results.innerHTML = `<div class="error-state">エラー: ${data.error}</div>`;
+      return;
+    }
+
+    allResults = data.results || [];
+    status.textContent = `「${query}」— ${allResults.length} 件`;
+    divider.style.display = "block";
+    if (allResults.length > 0) sortRow.style.display = "flex";
+
+    // 並べ替えをリセットして表示
+    document.getElementById("sortKey").value = "similarity";
+    renderResults(allResults);
+
+  } catch(e) {
+    status.textContent = "";
+    results.innerHTML = `<div class="error-state">サーバーに接続できません。server.py が起動しているか確認してください。</div>`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function applySort() {
+  if (allResults.length === 0) return;
+  const key = document.getElementById("sortKey").value;
+  const sorted = [...allResults];
+
+  if (key === "similarity") {
+    sorted.sort((a, b) => (b.similarity || 0) - (a.similarity || 0));
+  } else if (key === "date_desc") {
+    sorted.sort((a, b) => (b.published_date || "").localeCompare(a.published_date || ""));
+  } else if (key === "date_asc") {
+    sorted.sort((a, b) => (a.published_date || "").localeCompare(b.published_date || ""));
+  } else if (key === "age_asc") {
+    sorted.sort((a, b) => {
+      const av = parseInt(a.age_at_bombing) || 999;
+      const bv = parseInt(b.age_at_bombing) || 999;
+      return av - bv;
+    });
+  } else if (key === "age_desc") {
+    sorted.sort((a, b) => {
+      const av = parseInt(a.age_at_bombing) || 0;
+      const bv = parseInt(b.age_at_bombing) || 0;
+      return bv - av;
+    });
+  }
+
+  renderResults(sorted);
+}
+
+function renderResults(items) {
+  const results = document.getElementById("results");
+
+  if (items.length === 0) {
+    results.innerHTML = '<div class="empty-state">該当する証言が見つかりませんでした</div>';
+    return;
+  }
+
+  results.innerHTML = items.map((r, i) => {
+    const sim = Math.round((r.similarity || 0) * 100);
+    const themes = (r.themes || []).slice(0, 3).map(t =>
+      `<span class="theme-tag">${t}</span>`).join("");
+
+    const metas = [];
+    if (r.age_at_bombing) metas.push(`被爆時 ${r.age_at_bombing}歳`);
+    if (r.location) metas.push(r.location);
+    const metaHtml = metas.map((m, idx) =>
+      `${idx > 0 ? '<span class="card-meta-dot">·</span>' : ''}<span class="card-meta-item">${m}</span>`
+    ).join("");
+
+    return `
+      <div class="card" style="animation-delay:${Math.min(i,20)*0.03}s">
+        <div class="card-top">
+          <span class="card-name">${r.name || "（氏名不明）"}</span>
+          ${metaHtml}
+          <span class="card-date">${r.published_date || ""}</span>
+        </div>
+        <div class="card-text">${r.text || ""}</div>
+        <div class="card-bottom">
+          <div class="card-themes">${themes}</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;gap:5px">
+              <div class="relevance-bar"><div class="relevance-fill" style="width:${sim}%"></div></div>
+              <span class="card-meta-item">${sim}%</span>
+            </div>
+            ${r.source_url ? `<a class="card-link" href="${r.source_url}" target="_blank">元記事 →</a>` : ""}
+          </div>
+        </div>
+      </div>`;
+  }).join("");
+}
+</script>
+</body>
+</html>
