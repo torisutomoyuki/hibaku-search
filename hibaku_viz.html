@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>私の被爆ノート — 証言の全体像</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<style>
+  :root {
+    --bg: #ffffff;
+    --border: #e9e9e7;
+    --text-primary: #37352f;
+    --text-secondary: #787774;
+    --text-tertiary: #9b9a97;
+    --tag-bg: #f1f0ef;
+    --accent: #37352f;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Noto Sans JP", sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page { max-width: 900px; margin: 0 auto; padding: 0 96px 120px; }
+
+  .page-header {
+    padding: 80px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+
+  .page-icon { font-size: 48px; margin-bottom: 16px; line-height: 1; }
+
+  .page-title {
+    font-family: "Noto Serif JP", serif;
+    font-size: 2.2rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 8px;
+  }
+
+  .page-description {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    font-weight: 300;
+  }
+
+  .section {
+    margin-bottom: 56px;
+  }
+
+  .section-title {
+    font-family: "Noto Serif JP", serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+
+  .section-desc {
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+    margin-bottom: 24px;
+    font-weight: 300;
+  }
+
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 32px;
+  }
+
+  /* テーマバーチャート */
+  .bar-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeIn 0.4s ease both;
+  }
+
+  .bar-label {
+    font-size: 0.82rem;
+    color: var(--text-primary);
+    width: 160px;
+    flex-shrink: 0;
+    text-align: right;
+    font-weight: 300;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--tag-bg);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: #37352f;
+    border-radius: 4px;
+    transition: width 0.8s ease;
+  }
+
+  .bar-value {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    width: 48px;
+    flex-shrink: 0;
+    font-weight: 300;
+  }
+
+  /* ワードクラウド */
+  #wordcloud {
+    width: 100%;
+    height: 360px;
+  }
+
+  /* ローディング */
+  .loading {
+    text-align: center;
+    padding: 60px 0;
+    color: var(--text-tertiary);
+    font-size: 0.88rem;
+  }
+
+  .loading-dots { display: inline-flex; gap: 4px; align-items: center; }
+  .loading-dots span {
+    width: 5px; height: 5px;
+    background: var(--text-tertiary);
+    border-radius: 50%;
+    animation: dot-pulse 1.2s ease-in-out infinite;
+  }
+  .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dot-pulse {
+    0%,80%,100% { opacity:0.2; transform:scale(0.8); }
+    40% { opacity:1; transform:scale(1); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateX(-6px); }
+    to   { opacity:1; transform:translateX(0); }
+  }
+
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    margin-bottom: 32px;
+  }
+  .nav-link:hover { color: var(--text-secondary); }
+
+  @media (max-width: 768px) {
+    .page { padding: 0 24px 80px; }
+    .page-title { font-size: 1.6rem; }
+    .page-header { padding: 48px 0 32px; }
+    .bar-label { width: 100px; font-size: 0.75rem; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-icon">📊</div>
+    <h1 class="page-title">証言の全体像</h1>
+    <p class="page-description">1,243人・8,597チャンクの被爆証言を分析する</p>
+  </div>
+
+  <a class="nav-link" href="hibaku_search.html">← 証言を探す</a>
+
+  <div id="loading" class="loading">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+    <p style="margin-top:12px">データを読み込んでいます...</p>
+  </div>
+
+  <div id="content" style="display:none">
+
+    <!-- テーマ分布 -->
+    <div class="section">
+      <div class="section-title">何について語られているか</div>
+      <div class="section-desc">12のテーマタグ別チャンク数</div>
+      <div class="divider"></div>
+      <div class="bar-container" id="themeChart"></div>
+    </div>
+
+    <!-- ワードクラウド -->
+    <div class="section">
+      <div class="section-title">証言の中で多く使われた言葉</div>
+      <div class="section-desc">全証言テキストから頻出語を抽出（上位100語）</div>
+      <div class="divider"></div>
+      <svg id="wordcloud"></svg>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const API = "https://hibaku-search.onrender.com";
+
+async function loadStats() {
+  try {
+    const res = await fetch(`${API}/stats`);
+    const data = await res.json();
+
+    if (data.error) {
+      document.getElementById("loading").textContent = "エラー: " + data.error;
+      return;
+    }
+
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("content").style.display = "block";
+
+    renderThemes(data.themes);
+    renderWordCloud(data.words);
+
+  } catch(e) {
+    document.getElementById("loading").textContent = "サーバーに接続できません";
+  }
+}
+
+function renderThemes(themes) {
+  const container = document.getElementById("themeChart");
+  const entries = Object.entries(themes).sort((a,b) => b[1] - a[1]);
+  const max = entries[0][1];
+
+  container.innerHTML = entries.map(([label, count], i) => `
+    <div class="bar-row" style="animation-delay:${i*0.05}s">
+      <div class="bar-label">${label}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${(count/max*100).toFixed(1)}%"></div>
+      </div>
+      <div class="bar-value">${count.toLocaleString()}</div>
+    </div>
+  `).join("");
+}
+
+function renderWordCloud(words) {
+  const entries = Object.entries(words);
+  const maxCount = Math.max(...entries.map(e => e[1]));
+  const minCount = Math.min(...entries.map(e => e[1]));
+
+  const svg = d3.select("#wordcloud");
+  const width = document.getElementById("wordcloud").parentElement.offsetWidth;
+  const height = 360;
+  svg.attr("width", width).attr("height", height);
+
+  // フォントサイズのスケール
+  const scale = d3.scaleLinear()
+    .domain([minCount, maxCount])
+    .range([12, 52]);
+
+  // グレースケールのカラースケール
+  const colorScale = d3.scaleLinear()
+    .domain([minCount, maxCount])
+    .range(["#b0aca6", "#37352f"]);
+
+  // シンプルな配置（力指向）
+  const nodes = entries.map(([word, count]) => ({
+    word,
+    count,
+    fontSize: scale(count),
+    color: colorScale(count)
+  }));
+
+  // ランダム配置から始めてシミュレーション
+  nodes.forEach(n => {
+    n.x = width / 2 + (Math.random() - 0.5) * width * 0.6;
+    n.y = height / 2 + (Math.random() - 0.5) * height * 0.6;
+  });
+
+  const simulation = d3.forceSimulation(nodes)
+    .force("center", d3.forceCenter(width / 2, height / 2))
+    .force("charge", d3.forceManyBody().strength(-8))
+    .force("collision", d3.forceCollide(d => d.fontSize * 0.8))
+    .stop();
+
+  // 静的に計算
+  for (let i = 0; i < 120; i++) simulation.tick();
+
+  const texts = svg.selectAll("text")
+    .data(nodes)
+    .enter()
+    .append("text")
+    .attr("x", d => Math.max(d.fontSize, Math.min(width - d.fontSize, d.x)))
+    .attr("y", d => Math.max(d.fontSize, Math.min(height - d.fontSize, d.y)))
+    .attr("text-anchor", "middle")
+    .attr("dominant-baseline", "middle")
+    .style("font-family", "'Noto Serif JP', serif")
+    .style("font-size", d => `${d.fontSize}px`)
+    .style("fill", d => d.color)
+    .style("font-weight", d => d.count > (maxCount * 0.5) ? "500" : "300")
+    .style("opacity", 0)
+    .text(d => d.word);
+
+  // フェードイン
+  texts.transition()
+    .delay((d, i) => i * 8)
+    .duration(400)
+    .style("opacity", 1);
+}
+
+loadStats();
+</script>
+</body>
+</html>
