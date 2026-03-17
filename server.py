@@ -74,7 +74,47 @@ def search():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/stats", methods=["GET"])
+def stats():
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/testimonies"
+        headers = {
+            "apikey": SUPABASE_KEY,
+            "Authorization": f"Bearer {SUPABASE_KEY}",
+        }
+        params = {"select": "themes,text", "limit": 9000}
+        resp = requests.get(url, headers=headers, params=params)
+        rows = resp.json()
 
+        from collections import Counter
+        import re
+
+        # テーマ集計
+        theme_counts = Counter()
+        for row in rows:
+            for theme in (row.get("themes") or []):
+                theme_counts[theme] += 1
+
+        # 頻出語集計
+        word_counts = Counter()
+        stop_words = {"する", "ある", "いる", "なる", "れる", "られ", "ない",
+                      "その", "この", "また", "そして", "しかし", "ため", "こと",
+                      "もの", "とき", "ところ", "まま", "よう", "から", "まで",
+                      "だっ", "だが", "でも", "けど", "けれど", "という"}
+        for row in rows:
+            text = row.get("text", "") or ""
+            words = re.findall(r'[一-龥ぁ-んァ-ン]{2,6}', text)
+            for w in words:
+                if w not in stop_words:
+                    word_counts[w] += 1
+
+        return jsonify({
+            "themes": dict(theme_counts.most_common()),
+            "words": dict(word_counts.most_common(120))
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok"})
