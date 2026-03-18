@@ -423,7 +423,7 @@ function appendMessage(role, text) {
   div.className = `message ${role}`;
   div.innerHTML = `
     <div class="message-role">${roleLabel}</div>
-    <div class="message-bubble">${escapeHtml(text)}</div>`;
+    <div class="message-bubble">${escapeHtml(formatAnswer(text))}</div>`;
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
 }
@@ -450,7 +450,7 @@ function appendAssistantMessage(text, sources) {
 
   div.innerHTML = `
     <div class="message-role">案内人</div>
-    <div class="message-bubble">${escapeHtml(text)}</div>
+    <div class="message-bubble">${escapeHtml(formatAnswer(text))}</div>
     ${sourcesHtml}`;
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
@@ -469,7 +469,7 @@ function formatAnswer(text) {
     .trim();
 }
 
-function escapeHtml(text) {
+function escapeHtml(formatAnswer(text)) {
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
