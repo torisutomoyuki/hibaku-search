@@ -35,18 +35,28 @@
     padding: 20px 96px;
     border-bottom: 1px solid var(--border);
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 16px;
     flex-shrink: 0;
   }
-  .header-title {
-    font-family: "Noto Serif JP", serif;
-    font-size: 1.1rem;
-    font-weight: 500;
-  }
+  .header-title { font-family: "Noto Serif JP", serif; font-size: 1.1rem; font-weight: 500; }
   .header-desc { font-size: 0.78rem; color: var(--text-tertiary); font-weight: 300; }
-  .header-nav { margin-left: auto; font-size: 0.78rem; color: var(--text-tertiary); text-decoration: none; }
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .header-nav { font-size: 0.78rem; color: var(--text-tertiary); text-decoration: none; }
   .header-nav:hover { color: var(--text-secondary); }
+  .lang-btn {
+    height: 28px;
+    padding: 0 10px;
+    font-size: 0.78rem;
+    font-family: "Noto Sans JP", sans-serif;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .lang-btn:hover { background: #e9e8e4; }
   .chat-area {
     flex: 1;
     overflow-y: auto;
@@ -57,21 +67,9 @@
   }
   .welcome { text-align: center; padding: 48px 0 24px; color: var(--text-tertiary); }
   .welcome-icon { font-size: 40px; margin-bottom: 16px; }
-  .welcome-title {
-    font-family: "Noto Serif JP", serif;
-    font-size: 1.3rem;
-    font-weight: 400;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-  }
+  .welcome-title { font-family: "Noto Serif JP", serif; font-size: 1.3rem; font-weight: 400; color: var(--text-secondary); margin-bottom: 8px; }
   .welcome-desc { font-size: 0.85rem; font-weight: 300; line-height: 1.8; }
-  .welcome-hints {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    margin-top: 24px;
-  }
+  .welcome-hints { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 24px; }
   .welcome-hint {
     padding: 8px 16px;
     background: var(--tag-bg);
@@ -89,92 +87,33 @@
   .message.assistant { align-items: flex-start; }
   .message-role { font-size: 0.72rem; color: var(--text-tertiary); padding: 0 4px; font-weight: 300; }
   .message-bubble { max-width: 75%; padding: 14px 18px; border-radius: 4px; line-height: 1.8; }
-  .message.user .message-bubble {
-    background: var(--accent);
-    color: #fff;
-    font-size: 0.88rem;
-    border-radius: 4px 4px 0 4px;
-  }
-  .message.assistant .message-bubble {
-    background: var(--bubble-bg);
-    color: var(--text-primary);
-    font-family: "Noto Serif JP", serif;
-    font-size: 0.88rem;
-    font-weight: 300;
-    border-radius: 4px 4px 4px 0;
-    white-space: pre-wrap;
-  }
+  .message.user .message-bubble { background: var(--accent); color: #fff; font-size: 0.88rem; border-radius: 4px 4px 0 4px; }
+  .message.assistant .message-bubble { background: var(--bubble-bg); color: var(--text-primary); font-family: "Noto Serif JP", serif; font-size: 0.88rem; font-weight: 300; border-radius: 4px 4px 4px 0; white-space: pre-wrap; }
   .sources { max-width: 75%; margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
   .source-label { font-size: 0.72rem; color: var(--text-tertiary); margin-bottom: 4px; font-weight: 300; }
   .source-item { font-size: 0.75rem; color: var(--text-tertiary); display: flex; align-items: baseline; gap: 6px; font-weight: 300; }
   .source-link { color: var(--text-tertiary); text-decoration: none; font-size: 0.72rem; }
   .source-link:hover { color: var(--text-secondary); text-decoration: underline; }
-  .loading-bubble {
-    background: var(--bubble-bg);
-    padding: 14px 18px;
-    border-radius: 4px 4px 4px 0;
-    display: inline-flex;
-    gap: 5px;
-    align-items: center;
-  }
-  .loading-bubble span {
-    width: 5px; height: 5px;
-    background: var(--text-tertiary);
-    border-radius: 50%;
-    animation: dot-pulse 1.2s ease-in-out infinite;
-  }
+  .loading-bubble { background: var(--bubble-bg); padding: 14px 18px; border-radius: 4px 4px 4px 0; display: inline-flex; gap: 5px; align-items: center; }
+  .loading-bubble span { width: 5px; height: 5px; background: var(--text-tertiary); border-radius: 50%; animation: dot-pulse 1.2s ease-in-out infinite; }
   .loading-bubble span:nth-child(2) { animation-delay: 0.2s; }
   .loading-bubble span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes dot-pulse {
-    0%,80%,100% { opacity:0.2; transform:scale(0.8); }
-    40% { opacity:1; transform:scale(1); }
-  }
-  @keyframes fadeIn {
-    from { opacity:0; transform:translateY(6px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  .input-area {
-    padding: 16px 96px 24px;
-    border-top: 1px solid var(--border);
-    flex-shrink: 0;
-  }
+  @keyframes dot-pulse { 0%,80%,100% { opacity:0.2; transform:scale(0.8); } 40% { opacity:1; transform:scale(1); } }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  .input-area { padding: 16px 96px 24px; border-top: 1px solid var(--border); flex-shrink: 0; }
   .input-row { display: flex; gap: 8px; align-items: flex-end; }
   .input-box {
-    flex: 1;
-    min-height: 40px;
-    max-height: 120px;
-    padding: 10px 14px;
-    font-size: 0.9rem;
-    font-family: "Noto Sans JP", sans-serif;
-    font-weight: 300;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    resize: none;
-    outline: none;
-    color: var(--text-primary);
-    line-height: 1.6;
-    overflow-y: auto;
+    flex: 1; min-height: 40px; max-height: 120px;
+    padding: 10px 14px; font-size: 0.9rem;
+    font-family: "Noto Sans JP", sans-serif; font-weight: 300;
+    border: 1px solid var(--border); border-radius: 4px;
+    resize: none; outline: none; color: var(--text-primary);
+    line-height: 1.6; overflow-y: auto;
     transition: border-color 0.12s, box-shadow 0.12s;
   }
   .input-box::placeholder { color: var(--text-tertiary); }
-  .input-box:focus {
-    border-color: var(--border-hover);
-    box-shadow: 0 0 0 2px rgba(55,53,47,0.08);
-  }
-  .send-btn {
-    height: 40px; width: 40px;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: opacity 0.12s;
-  }
+  .input-box:focus { border-color: var(--border-hover); box-shadow: 0 0 0 2px rgba(55,53,47,0.08); }
+  .send-btn { height: 40px; width: 40px; background: var(--accent); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: opacity 0.12s; }
   .send-btn:hover { opacity: 0.85; }
   .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .input-note { font-size: 0.72rem; color: var(--text-tertiary); margin-top: 8px; font-weight: 300; }
@@ -190,43 +129,111 @@
 <body>
 
 <div class="header">
-  <span class="header-title">📖 証言の案内人</span>
-  <span class="header-desc">私の被爆ノート</span>
-  <a class="header-nav" href="hibaku_search.html">証言を探す →</a>
+  <span class="header-title" id="headerTitle">📖 証言の案内人</span>
+  <span class="header-desc" id="headerDesc">私の被爆ノート</span>
+  <div class="header-right">
+    <button class="lang-btn" onclick="toggleLang()">EN</button>
+    <a class="header-nav" id="headerNav" href="hibaku_search.html">証言を探す →</a>
+  </div>
 </div>
 
 <div class="chat-area" id="chatArea">
   <div class="welcome" id="welcome">
     <div class="welcome-icon">🕊️</div>
-    <div class="welcome-title">証言の案内人</div>
-    <div class="welcome-desc">
+    <div class="welcome-title" id="welcomeTitle">証言の案内人</div>
+    <div class="welcome-desc" id="welcomeDesc">
       長崎の被爆者1,243人の証言をもとに、あなたの問いに答えます。<br>
       証言の言葉だけを使い、事実の範囲内でお伝えします。
     </div>
-    <div class="welcome-hints">
+    <div class="welcome-hints" id="welcomeHints">
       <button class="welcome-hint" onclick="setQuestion('爆発の瞬間、何が起きたのですか')">爆発の瞬間、何が起きたのですか</button>
       <button class="welcome-hint" onclick="setQuestion('家族を失った人たちはどう語っていますか')">家族を失った人たちはどう語っていますか</button>
       <button class="welcome-hint" onclick="setQuestion('被爆者たちは平和についてどう語っていますか')">平和についてどう語っていますか</button>
-      <button class="welcome-hint" onclick="setQuestion('What happened at the moment of the explosion?')">What happened at the moment of the explosion?</button>
+      <button class="welcome-hint" onclick="setQuestion('戦後の差別や偏見について語っている人はいますか')">戦後の差別・偏見</button>
     </div>
   </div>
 </div>
 
 <div class="input-area">
   <div class="input-row">
-    <textarea
-      class="input-box"
-      id="inputBox"
-      placeholder="証言について質問してください / Ask about the testimonies"
-      rows="1"
-    ></textarea>
+    <textarea class="input-box" id="inputBox" placeholder="証言について質問してください" rows="1"></textarea>
     <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
   </div>
-  <div class="input-note">Shift+Enter で改行 / Enter で送信</div>
+  <div class="input-note" id="inputNote">Shift+Enter で改行 / Enter で送信</div>
 </div>
 
 <script>
 var API = "https://hibaku-search.onrender.com";
+var currentLang = "ja";
+
+var i18n = {
+  ja: {
+    headerTitle: "📖 証言の案内人",
+    headerDesc: "私の被爆ノート",
+    headerNav: "証言を探す →",
+    langBtn: "EN",
+    welcomeTitle: "証言の案内人",
+    welcomeDesc: "長崎の被爆者1,243人の証言をもとに、あなたの問いに答えます。\n証言の言葉だけを使い、事実の範囲内でお伝えします。",
+    hints: [
+      "爆発の瞬間、何が起きたのですか",
+      "家族を失った人たちはどう語っていますか",
+      "被爆者たちは平和についてどう語っていますか",
+      "戦後の差別や偏見について語っている人はいますか"
+    ],
+    placeholder: "証言について質問してください",
+    inputNote: "Shift+Enter で改行 / Enter で送信",
+    roleUser: "あなた",
+    roleGuide: "案内人",
+    sourceLabel: "参照した証言",
+    sourceLink: "元記事 →",
+    errorServer: "サーバーに接続できません。しばらく待ってから再度お試しください。"
+  },
+  en: {
+    headerTitle: "📖 Testimony Guide",
+    headerDesc: "My Hibaku Note — Nagasaki",
+    headerNav: "Search testimonies →",
+    langBtn: "JA",
+    welcomeTitle: "Testimony Guide",
+    welcomeDesc: "Answers drawn from 1,243 testimonies of Nagasaki atomic bomb survivors.\nResponses are based solely on the words of the survivors.",
+    hints: [
+      "What happened at the moment of the explosion?",
+      "How do survivors describe losing their families?",
+      "What do survivors say about peace?",
+      "Were there discrimination against survivors after the war?"
+    ],
+    placeholder: "Ask about the testimonies",
+    inputNote: "Shift+Enter for new line / Enter to send",
+    roleUser: "You",
+    roleGuide: "Guide",
+    sourceLabel: "Referenced testimonies",
+    sourceLink: "Read original →",
+    errorServer: "Cannot connect to server. Please try again in a moment."
+  }
+};
+
+function toggleLang() {
+  currentLang = currentLang === "ja" ? "en" : "ja";
+  applyLang();
+}
+
+function applyLang() {
+  var t = i18n[currentLang];
+  document.getElementById("headerTitle").textContent = t.headerTitle;
+  document.getElementById("headerDesc").textContent = t.headerDesc;
+  document.getElementById("headerNav").textContent = t.headerNav;
+  document.querySelector(".lang-btn").textContent = t.langBtn;
+  document.getElementById("welcomeTitle").textContent = t.welcomeTitle;
+  document.getElementById("welcomeDesc").innerHTML = t.welcomeDesc.replace(/\n/g, "<br>");
+  document.getElementById("inputBox").placeholder = t.placeholder;
+  document.getElementById("inputNote").textContent = t.inputNote;
+
+  var hintsEl = document.getElementById("welcomeHints");
+  if (hintsEl) {
+    hintsEl.innerHTML = t.hints.map(function(h) {
+      return '<button class="welcome-hint" onclick="setQuestion(\'' + h.replace(/'/g, "\\'") + '\')">' + h + '</button>';
+    }).join("");
+  }
+}
 
 function setQuestion(text) {
   document.getElementById("inputBox").value = text;
@@ -251,7 +258,6 @@ function cleanText(text) {
   text = text.replace(/\*\*/g, "");
   text = text.replace(/\*/g, "");
   text = text.replace(/\[[^\]]*\]/g, "");
-  text = text.replace(/【第\d+部[^】]*】/g, "");
   text = text.replace(/\n\n\n+/g, "\n\n");
   return text.trim();
 }
@@ -269,13 +275,14 @@ function sendMessage() {
   var question = input.value.trim();
   if (!question) return;
 
+  var t = i18n[currentLang];
   var btn = document.getElementById("sendBtn");
   var chatArea = document.getElementById("chatArea");
 
   var welcome = document.getElementById("welcome");
   if (welcome) welcome.style.display = "none";
 
-  appendMessage("user", question);
+  appendMessage("user", question, t.roleUser);
   input.value = "";
   input.style.height = "auto";
   btn.disabled = true;
@@ -284,7 +291,7 @@ function sendMessage() {
   var loadingDiv = document.createElement("div");
   loadingDiv.className = "message assistant";
   loadingDiv.id = loadingId;
-  loadingDiv.innerHTML = '<div class="message-role">案内人</div><div class="loading-bubble"><span></span><span></span><span></span></div>';
+  loadingDiv.innerHTML = '<div class="message-role">' + t.roleGuide + '</div><div class="loading-bubble"><span></span><span></span><span></span></div>';
   chatArea.appendChild(loadingDiv);
   chatArea.scrollTop = chatArea.scrollHeight;
 
@@ -298,15 +305,15 @@ function sendMessage() {
     var el = document.getElementById(loadingId);
     if (el) el.remove();
     if (data.error) {
-      appendMessage("assistant", "エラーが発生しました: " + data.error);
+      appendMessage("assistant", "Error: " + data.error, t.roleGuide);
     } else {
-      appendAssistantMessage(data.answer, data.sources || []);
+      appendAssistantMessage(data.answer, data.sources || [], t);
     }
   })
   .catch(function() {
     var el = document.getElementById(loadingId);
     if (el) el.remove();
-    appendMessage("assistant", "サーバーに接続できません。しばらく待ってから再度お試しください。");
+    appendMessage("assistant", t.errorServer, t.roleGuide);
   })
   .finally(function() {
     btn.disabled = false;
@@ -314,9 +321,8 @@ function sendMessage() {
   });
 }
 
-function appendMessage(role, text) {
+function appendMessage(role, text, roleLabel) {
   var chatArea = document.getElementById("chatArea");
-  var roleLabel = role === "user" ? "あなた" : "案内人";
   var div = document.createElement("div");
   div.className = "message " + role;
   div.innerHTML = '<div class="message-role">' + roleLabel + '</div><div class="message-bubble">' + escapeHtml(text) + '</div>';
@@ -324,7 +330,7 @@ function appendMessage(role, text) {
   chatArea.scrollTop = chatArea.scrollHeight;
 }
 
-function appendAssistantMessage(text, sources) {
+function appendAssistantMessage(text, sources, t) {
   var chatArea = document.getElementById("chatArea");
   var div = document.createElement("div");
   div.className = "message assistant";
@@ -332,15 +338,15 @@ function appendAssistantMessage(text, sources) {
   var sourcesHtml = "";
   if (sources && sources.length > 0) {
     var items = sources.map(function(s) {
-      var name = s.name || "氏名不明";
-      var date = s.published_date ? "（" + s.published_date + "）" : "";
-      var link = s.url ? '<a class="source-link" href="' + s.url + '" target="_blank">元記事 →</a>' : "";
-      return '<div class="source-item">・' + name + 'さん' + date + ' ' + link + '</div>';
+      var name = s.name || "—";
+      var date = s.published_date ? " (" + s.published_date + ")" : "";
+      var link = s.url ? '<a class="source-link" href="' + s.url + '" target="_blank">' + t.sourceLink + '</a>' : "";
+      return '<div class="source-item">· ' + name + date + ' ' + link + '</div>';
     }).join("");
-    sourcesHtml = '<div class="sources"><div class="source-label">参照した証言</div>' + items + '</div>';
+    sourcesHtml = '<div class="sources"><div class="source-label">' + t.sourceLabel + '</div>' + items + '</div>';
   }
 
-  div.innerHTML = '<div class="message-role">案内人</div><div class="message-bubble">' + escapeHtml(cleanText(text)) + '</div>' + sourcesHtml;
+  div.innerHTML = '<div class="message-role">' + t.roleGuide + '</div><div class="message-bubble">' + escapeHtml(cleanText(text)) + '</div>' + sourcesHtml;
   chatArea.appendChild(div);
   chatArea.scrollTop = chatArea.scrollHeight;
 }
