@@ -250,7 +250,7 @@ function cleanText(text) {
   text = text.replace(/#+\s*/g, "");
   text = text.replace(/\*\*/g, "");
   text = text.replace(/\*/g, "");
-  text = text.replace(/\[Part\s*\d+[^\]]*\]/g, "");
+  text = text.replace(/\[[^\]]*\]/g, "");
   text = text.replace(/【第\d+部[^】]*】/g, "");
   text = text.replace(/\n\n\n+/g, "\n\n");
   return text.trim();
