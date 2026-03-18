@@ -73,7 +73,72 @@ def search():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.get_json()
+    question = data.get("question", "").strip()
 
+    if not question:
+        return jsonify({"error": "質問が空です"}), 400
+
+    try:
+        embedding = get_embedding(question)
+        chunks = search_supabase(embedding, match_count=6)
+
+        if not chunks:
+            return jsonify({"answer": "関連する証言が見つかりませんでした。", "sources": []})
+
+        context = ""
+        sources = []
+        seen = set()
+        for c in chunks:
+            aid = c.get("chunk_id", "").rsplit("_", 2)[0]
+            if aid not in seen:
+                seen.add(aid)
+                sources.append({
+                    "name": c.get("name") or "氏名不明",
+                    "title": c.get("title", ""),
+                    "url": c.get("source_url", ""),
+                    "published_date": c.get("published_date", "")
+                })
+            context += f"【{c.get('name') or '氏名不明'}さんの証言】\n{c.get('text', '')}\n\n"
+
+        import anthropic
+        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+
+        system_prompt = """You are a guide to the Nagasaki atomic bomb testimony archive "My Hibaku Note."
+
+Rules:
+1. Respond in the same language as the user's question (Japanese or English)
+2. Only use information from the provided testimonies
+3. Structure your response in two parts:
+
+[Part 1: Testimonies]
+Introduce each testimony individually, naming each person and quoting their words with 「」(Japanese) or "" (English). Be respectful and quiet in tone.
+
+[Part 2: What the testimonies reveal]
+Write a brief synthesis (3-5 sentences) that weaves together the voices into a collective understanding. Do not add information beyond the testimonies.
+
+4. Never express your own opinions or emotions.
+5. Always maintain a tone of deep respect."""
+
+        message = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1200,
+            system=system_prompt,
+            messages=[
+                {
+                    "role": "user",
+                    "content": f"Question: {question}\n\nTestimonies:\n{context}"
+                }
+            ]
+        )
+
+        answer = message.content[0].text
+        return jsonify({"answer": answer, "sources": sources})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 @app.route("/stats", methods=["GET"])
 def stats():
     try:

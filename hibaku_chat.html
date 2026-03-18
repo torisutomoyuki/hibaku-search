@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>私の被爆ノート — 証言の案内人</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --border: #e9e9e7;
+    --border-hover: #c9c9c4;
+    --text-primary: #37352f;
+    --text-secondary: #787774;
+    --text-tertiary: #9b9a97;
+    --accent: #37352f;
+    --tag-bg: #f1f0ef;
+    --tag-text: #787774;
+    --bubble-bg: #f7f6f3;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Noto Sans JP", sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ヘッダー */
+  .header {
+    padding: 20px 96px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+
+  .header-title {
+    font-family: "Noto Serif JP", serif;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .header-desc {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    font-weight: 300;
+  }
+
+  .header-nav {
+    margin-left: auto;
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    text-decoration: none;
+  }
+
+  .header-nav:hover { color: var(--text-secondary); }
+
+  /* チャットエリア */
+  .chat-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* ウェルカムメッセージ */
+  .welcome {
+    text-align: center;
+    padding: 48px 0 24px;
+    color: var(--text-tertiary);
+  }
+
+  .welcome-icon { font-size: 40px; margin-bottom: 16px; }
+
+  .welcome-title {
+    font-family: "Noto Serif JP", serif;
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+  }
+
+  .welcome-desc {
+    font-size: 0.85rem;
+    font-weight: 300;
+    line-height: 1.8;
+  }
+
+  .welcome-hints {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 24px;
+  }
+
+  .welcome-hint {
+    padding: 8px 16px;
+    background: var(--tag-bg);
+    border: none;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-family: "Noto Sans JP", sans-serif;
+    color: var(--tag-text);
+    cursor: pointer;
+    transition: background 0.1s;
+    font-weight: 300;
+  }
+
+  .welcome-hint:hover { background: #e9e8e4; }
+
+  /* メッセージ */
+  .message {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .message.user { align-items: flex-end; }
+  .message.assistant { align-items: flex-start; }
+
+  .message-role {
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    padding: 0 4px;
+    font-weight: 300;
+  }
+
+  .message-bubble {
+    max-width: 75%;
+    padding: 14px 18px;
+    border-radius: 4px;
+    line-height: 1.8;
+  }
+
+  .message.user .message-bubble {
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.88rem;
+    border-radius: 4px 4px 0 4px;
+  }
+
+  .message.assistant .message-bubble {
+    background: var(--bubble-bg);
+    color: var(--text-primary);
+    font-family: "Noto Serif JP", serif;
+    font-size: 0.88rem;
+    font-weight: 300;
+    border-radius: 4px 4px 4px 0;
+    white-space: pre-wrap;
+  }
+
+  /* 出典 */
+  .sources {
+    max-width: 75%;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .source-label {
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+    font-weight: 300;
+  }
+
+  .source-item {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-weight: 300;
+  }
+
+  .source-link {
+    color: var(--text-tertiary);
+    text-decoration: none;
+    font-size: 0.72rem;
+  }
+
+  .source-link:hover { color: var(--text-secondary); text-decoration: underline; }
+
+  /* ローディング */
+  .loading-bubble {
+    background: var(--bubble-bg);
+    padding: 14px 18px;
+    border-radius: 4px 4px 4px 0;
+    display: inline-flex;
+    gap: 5px;
+    align-items: center;
+  }
+
+  .loading-bubble span {
+    width: 5px; height: 5px;
+    background: var(--text-tertiary);
+    border-radius: 50%;
+    animation: dot-pulse 1.2s ease-in-out infinite;
+  }
+
+  .loading-bubble span:nth-child(2) { animation-delay: 0.2s; }
+  .loading-bubble span:nth-child(3) { animation-delay: 0.4s; }
+
+  @keyframes dot-pulse {
+    0%,80%,100% { opacity:0.2; transform:scale(0.8); }
+    40% { opacity:1; transform:scale(1); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity:0; transform:translateY(6px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* 入力エリア */
+  .input-area {
+    padding: 16px 96px 24px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .input-box {
+    flex: 1;
+    min-height: 40px;
+    max-height: 120px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    font-family: "Noto Sans JP", sans-serif;
+    font-weight: 300;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    resize: none;
+    outline: none;
+    color: var(--text-primary);
+    line-height: 1.6;
+    overflow-y: auto;
+    transition: border-color 0.12s, box-shadow 0.12s;
+  }
+
+  .input-box::placeholder { color: var(--text-tertiary); }
+
+  .input-box:focus {
+    border-color: var(--border-hover);
+    box-shadow: 0 0 0 2px rgba(55,53,47,0.08);
+  }
+
+  .send-btn {
+    height: 40px;
+    width: 40px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.12s;
+  }
+
+  .send-btn:hover { opacity: 0.85; }
+  .send-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .input-note {
+    font-size: 0.72rem;
+    color: var(--text-tertiary);
+    margin-top: 8px;
+    font-weight: 300;
+  }
+
+  @media (max-width: 768px) {
+    .header { padding: 16px 20px; }
+    .chat-area { padding: 20px; }
+    .input-area { padding: 12px 20px 20px; }
+    .message-bubble { max-width: 90%; }
+    .sources { max-width: 90%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-title">📖 証言の案内人</span>
+  <span class="header-desc">私の被爆ノート</span>
+  <a class="header-nav" href="hibaku_search.html">証言を探す →</a>
+</div>
+
+<div class="chat-area" id="chatArea">
+  <div class="welcome" id="welcome">
+    <div class="welcome-icon">🕊️</div>
+    <div class="welcome-title">証言の案内人</div>
+    <div class="welcome-desc">
+      長崎の被爆者1,243人の証言をもとに、あなたの問いに答えます。<br>
+      証言の言葉だけを使い、事実の範囲内でお伝えします。
+    </div>
+    <div class="welcome-hints">
+      <button class="welcome-hint" onclick="setQuestion('爆発の瞬間、何が起きたのですか')">爆発の瞬間、何が起きたのですか</button>
+      <button class="welcome-hint" onclick="setQuestion('家族を失った人たちはどう語っていますか')">家族を失った人たちはどう語っていますか</button>
+      <button class="welcome-hint" onclick="setQuestion('被爆者たちは平和についてどう語っていますか')">平和についてどう語っていますか</button>
+      <button class="welcome-hint" onclick="setQuestion('What happened at the moment of the explosion?')">What happened at the moment of the explosion?</button>
+    </div>
+  </div>
+</div>
+
+<div class="input-area">
+  <div class="input-row">
+    <textarea
+      class="input-box"
+      id="inputBox"
+      placeholder="証言について質問してください / Ask about the testimonies"
+      rows="1"
+    ></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+  </div>
+  <div class="input-note">Shift+Enter で改行 / Enter で送信</div>
+</div>
+
+<script>
+const API = "https://hibaku-search.onrender.com";
+
+function setQuestion(text) {
+  document.getElementById("inputBox").value = text;
+  sendMessage();
+}
+
+// Enterで送信、Shift+Enterで改行
+document.getElementById("inputBox").addEventListener("keydown", e => {
+  if (e.isComposing || e.keyCode === 229) return;
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// テキストエリアの自動リサイズ
+document.getElementById("inputBox").addEventListener("input", function() {
+  this.style.height = "auto";
+  this.style.height = Math.min(this.scrollHeight, 120) + "px";
+});
+
+async function sendMessage() {
+  const input = document.getElementById("inputBox");
+  const question = input.value.trim();
+  if (!question) return;
+
+  const btn = document.getElementById("sendBtn");
+  const chatArea = document.getElementById("chatArea");
+
+  // ウェルカム非表示
+  const welcome = document.getElementById("welcome");
+  if (welcome) welcome.style.display = "none";
+
+  // ユーザーメッセージ追加
+  appendMessage("user", question);
+  input.value = "";
+  input.style.height = "auto";
+  btn.disabled = true;
+
+  // ローディング
+  const loadingId = "loading-" + Date.now();
+  const loadingDiv = document.createElement("div");
+  loadingDiv.className = "message assistant";
+  loadingDiv.id = loadingId;
+  loadingDiv.innerHTML = `
+    <div class="message-role">案内人</div>
+    <div class="loading-bubble">
+      <span></span><span></span><span></span>
+    </div>`;
+  chatArea.appendChild(loadingDiv);
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  try {
+    const res = await fetch(`${API}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question })
+    });
+
+    const data = await res.json();
+    document.getElementById(loadingId)?.remove();
+
+    if (data.error) {
+      appendMessage("assistant", "エラーが発生しました: " + data.error);
+    } else {
+      appendAssistantMessage(data.answer, data.sources || []);
+    }
+
+  } catch(e) {
+    document.getElementById(loadingId)?.remove();
+    appendMessage("assistant", "サーバーに接続できません。しばらく待ってから再度お試しください。");
+  } finally {
+    btn.disabled = false;
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+}
+
+function appendMessage(role, text) {
+  const chatArea = document.getElementById("chatArea");
+  const roleLabel = role === "user" ? "あなた" : "案内人";
+  const div = document.createElement("div");
+  div.className = `message ${role}`;
+  div.innerHTML = `
+    <div class="message-role">${roleLabel}</div>
+    <div class="message-bubble">${escapeHtml(text)}</div>`;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function appendAssistantMessage(text, sources) {
+  const chatArea = document.getElementById("chatArea");
+  const div = document.createElement("div");
+  div.className = "message assistant";
+
+  let sourcesHtml = "";
+  if (sources && sources.length > 0) {
+    const items = sources.map(s => {
+      const name = s.name || "氏名不明";
+      const date = s.published_date ? `（${s.published_date}）` : "";
+      const link = s.url ? `<a class="source-link" href="${s.url}" target="_blank">元記事 →</a>` : "";
+      return `<div class="source-item">・${name}さん${date} ${link}</div>`;
+    }).join("");
+    sourcesHtml = `
+      <div class="sources">
+        <div class="source-label">参照した証言</div>
+        ${items}
+      </div>`;
+  }
+
+  div.innerHTML = `
+    <div class="message-role">案内人</div>
+    <div class="message-bubble">${escapeHtml(text)}</div>
+    ${sourcesHtml}`;
+  chatArea.appendChild(div);
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function escapeHtml(text) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+</script>
+</body>
+</html>
