@@ -73,8 +73,6 @@ def search():
 
     except Exception as e:
         import traceback
-        print(f"CHAT ERROR: {traceback.format_exc()}")
-        return jsonify({"error": str(e)}), 500
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
@@ -88,7 +86,7 @@ def chat():
         chunks = search_supabase(embedding, match_count=6)
 
         if not chunks:
-            return jsonify({"error": "関連する証言が見つかりませんでした。"})
+            return jsonify({"answer": "関連する証言が見つかりませんでした。", "sources": []})
 
         context = ""
         sources = []
@@ -105,9 +103,8 @@ def chat():
                 })
             context += f"【{c.get('name') or '氏名不明'}さんの証言】\n{c.get('text', '')}\n\n"
 
-        import anthropic, json
-
-        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+        import anthropic as ac
+        client = ac.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
         system_prompt = """You are a gentle, respectful guide to the Nagasaki atomic bomb testimony archive.
 
@@ -132,22 +129,21 @@ Rules:
 4. Never use markdown symbols like #, ##, **, or *.
 5. Write in flowing, natural paragraphs."""
 
-        def generate():
-            yield f"data: {json.dumps({'type': 'sources', 'sources': sources})}\n\n"
-            with client.messages.stream(
-                model="claude-haiku-4-5-20251001",
-                max_tokens=1200,
-                system=system_prompt,
-                messages=[{"role": "user", "content": f"Question: {question}\n\nTestimonies:\n{context}"}]
-            ) as stream:
-                for text in stream.text_stream:
-                    yield f"data: {json.dumps({'type': 'text', 'text': text})}\n\n"
-            yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        message = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=1200,
+            system=system_prompt,
+            messages=[{"role": "user", "content": f"Question: {question}\n\nTestimonies:\n{context}"}]
+        )
 
-        return Response(generate(), mimetype="text/event-stream",
-                       headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+        answer = message.content[0].text
+        return jsonify({"answer": answer, "sources": sources})
 
     except Exception as e:
+        import traceback
+        print(f"CHAT ERROR: {traceback.format_exc()}")
+        return jsonify({"error": str(e)}), 500
+
         return jsonify({"error": str(e)}), 500
 
 @app.route("/stats", methods=["GET"])
