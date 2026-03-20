@@ -72,6 +72,8 @@ def search():
         return jsonify({"results": unique})
 
     except Exception as e:
+        import traceback
+        print(f"CHAT ERROR: {traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
 @app.route("/chat", methods=["POST"])
 def chat():
