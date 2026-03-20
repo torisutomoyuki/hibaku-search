@@ -4,3 +4,4 @@ openai
 requests
 gunicorn
 anthropic
+gevent
