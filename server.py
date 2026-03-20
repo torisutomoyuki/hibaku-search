@@ -11,7 +11,7 @@
 import os
 import json
 import requests
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import openai
 
@@ -72,7 +72,7 @@ def search():
         return jsonify({"results": unique})
 
     except Exception as e:
-        import traceback
+        return jsonify({"error": str(e)}), 500
 @app.route("/chat", methods=["POST"])
 def chat():
     data = request.get_json()
@@ -86,7 +86,7 @@ def chat():
         chunks = search_supabase(embedding, match_count=6)
 
         if not chunks:
-            return jsonify({"answer": "関連する証言が見つかりませんでした。", "sources": []})
+            return jsonify({"error": "関連する証言が見つかりませんでした。"})
 
         context = ""
         sources = []
@@ -103,8 +103,9 @@ def chat():
                 })
             context += f"【{c.get('name') or '氏名不明'}さんの証言】\n{c.get('text', '')}\n\n"
 
-        import anthropic as ac, json as js
-        client = ac.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+        import anthropic, json
+
+        client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
         system_prompt = """You are a gentle, respectful guide to the Nagasaki atomic bomb testimony archive.
 
@@ -130,7 +131,7 @@ Rules:
 5. Write in flowing, natural paragraphs."""
 
         def generate():
-            yield f"data: {js.dumps({'type': 'sources', 'sources': sources})}\n\n"
+            yield f"data: {json.dumps({'type': 'sources', 'sources': sources})}\n\n"
             with client.messages.stream(
                 model="claude-haiku-4-5-20251001",
                 max_tokens=1200,
@@ -138,15 +139,13 @@ Rules:
                 messages=[{"role": "user", "content": f"Question: {question}\n\nTestimonies:\n{context}"}]
             ) as stream:
                 for text in stream.text_stream:
-                    yield f"data: {js.dumps({'type': 'text', 'text': text})}\n\n"
-            yield f"data: {js.dumps({'type': 'done'})}\n\n"
+                    yield f"data: {json.dumps({'type': 'text', 'text': text})}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
         return Response(generate(), mimetype="text/event-stream",
                        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     except Exception as e:
-        import traceback
-        print(f"CHAT ERROR: {traceback.format_exc()}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/stats", methods=["GET"])
