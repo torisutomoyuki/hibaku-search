@@ -1,4 +1,5 @@
-from gevent import monkey; monkey.patch_all()
+import eventlet
+eventlet.monkey_patch()
 """
 被爆証言検索 API サーバー
 ========================
