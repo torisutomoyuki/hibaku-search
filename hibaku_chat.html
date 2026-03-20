@@ -343,12 +343,31 @@ function appendAssistantMessage(text, sources, t) {
       var link = s.url ? '<a class="source-link" href="' + s.url + '" target="_blank">' + t.sourceLink + '</a>' : "";
       return '<div class="source-item">· ' + name + date + ' ' + link + '</div>';
     }).join("");
-    sourcesHtml = '<div class="sources"><div class="source-label">' + t.sourceLabel + '</div>' + items + '</div>';
+    sourcesHtml = '<div class="sources" style="display:none"><div class="source-label">' + t.sourceLabel + '</div>' + items + '</div>';
   }
 
-  div.innerHTML = '<div class="message-role">' + t.roleGuide + '</div><div class="message-bubble">' + escapeHtml(cleanText(text)) + '</div>' + sourcesHtml;
+  div.innerHTML = '<div class="message-role">' + t.roleGuide + '</div><div class="message-bubble" id="typing-bubble"></div>' + sourcesHtml;
   chatArea.appendChild(div);
-  chatArea.scrollTop = chatArea.scrollHeight;
+
+  var clean = cleanText(text);
+  var bubble = div.querySelector("#typing-bubble");
+  bubble.removeAttribute("id");
+  var i = 0;
+  var speed = 18;
+
+  function typeNext() {
+    if (i < clean.length) {
+      bubble.textContent += clean[i];
+      i++;
+      chatArea.scrollTop = chatArea.scrollHeight;
+      setTimeout(typeNext, speed);
+    } else {
+      var src = div.querySelector(".sources");
+      if (src) src.style.display = "flex";
+      chatArea.scrollTop = chatArea.scrollHeight;
+    }
+  }
+  typeNext();
 }
 </script>
 </body>
