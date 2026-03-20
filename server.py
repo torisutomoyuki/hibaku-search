@@ -86,7 +86,7 @@ def chat():
         chunks = search_supabase(embedding, match_count=6)
 
         if not chunks:
-            return jsonify({"answer": "関連する証言が見つかりませんでした。", "sources": []})
+            return jsonify({"error": "関連する証言が見つかりませんでした。"})
 
         context = ""
         sources = []
@@ -103,52 +103,51 @@ def chat():
                 })
             context += f"【{c.get('name') or '氏名不明'}さんの証言】\n{c.get('text', '')}\n\n"
 
-        import anthropic
+        import anthropic, json
+
         client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
 
-system_prompt = """You are a gentle, respectful guide to the Nagasaki atomic bomb testimony archive.
+        system_prompt = """You are a gentle, respectful guide to the Nagasaki atomic bomb testimony archive.
 
 Respond in the same language as the user's question (Japanese or English).
 
 Structure your response naturally, like a human guide speaking quietly:
 
 For Japanese:
-- Start Part 1 with something like「いくつかの証言をご紹介します。」or「こんな声があります。」
-- Introduce each person warmly by name, using 「さんはこう語っています。」
-- Start Part 2 with something like「これらの証言から見えてくるのは、」or「証言を重ねると、」
-- End with a quiet, reflective closing sentence.
+- Start with something like「いくつかの証言をご紹介します。」
+- Introduce each person warmly by name
+- End with a quiet synthesis starting with「これらの証言から見えてくるのは、」
 
 For English:
-- Start Part 1 with something like "Let me share some testimonies with you."
-- Introduce each person warmly, e.g. "Mr./Ms. X recalls..."
-- Start Part 2 with something like "Looking across these testimonies," or "What emerges from these voices is..."
-- End with a quiet, reflective closing sentence.
+- Start with "Let me share some testimonies with you."
+- Introduce each person warmly
+- End with a quiet synthesis starting with "Looking across these testimonies,"
 
 Rules:
-1. Only use information from the provided testimonies. Never add outside knowledge.
+1. Only use information from the provided testimonies.
 2. Always name each testimony giver.
 3. Quote their words using 「」(Japanese) or "" (English).
 4. Never use markdown symbols like #, ##, **, or *.
-5. Write in flowing, natural paragraphs. No bullet points.
-6. Maintain a tone of deep respect and stillness throughout."""
+5. Write in flowing, natural paragraphs."""
 
-        message = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=1200,
-            system=system_prompt,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"Question: {question}\n\nTestimonies:\n{context}"
-                }
-            ]
-        )
+        def generate():
+            yield f"data: {json.dumps({'type': 'sources', 'sources': sources})}\n\n"
+            with client.messages.stream(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=1200,
+                system=system_prompt,
+                messages=[{"role": "user", "content": f"Question: {question}\n\nTestimonies:\n{context}"}]
+            ) as stream:
+                for text in stream.text_stream:
+                    yield f"data: {json.dumps({'type': 'text', 'text': text})}\n\n"
+            yield f"data: {json.dumps({'type': 'done'})}\n\n"
 
-        answer = message.content[0].text
-        return jsonify({"answer": answer, "sources": sources})
+        return Response(generate(), mimetype="text/event-stream",
+                       headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 @app.route("/stats", methods=["GET"])
 def stats():
     try:

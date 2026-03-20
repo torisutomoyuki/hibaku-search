@@ -300,24 +300,73 @@ function sendMessage() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ question: question })
   })
-  .then(function(res) { return res.json(); })
-  .then(function(data) {
+  .then(function(res) {
     var el = document.getElementById(loadingId);
     if (el) el.remove();
-    if (data.error) {
-      appendMessage("assistant", "Error: " + data.error, t.roleGuide);
-    } else {
-      appendAssistantMessage(data.answer, data.sources || [], t);
+
+    var div = document.createElement("div");
+    div.className = "message assistant";
+    div.innerHTML = '<div class="message-role">' + t.roleGuide + '</div><div class="message-bubble" id="stream-bubble"></div>';
+    chatArea.appendChild(div);
+
+    var bubble = div.querySelector("#stream-bubble");
+    bubble.removeAttribute("id");
+    var fullText = "";
+    var sourcesData = [];
+
+    var reader = res.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = "";
+
+    function read() {
+      reader.read().then(function(result) {
+        if (result.done) {
+          if (sourcesData.length > 0) {
+            var items = sourcesData.map(function(s) {
+              var name = s.name || "—";
+              var date = s.published_date ? " (" + s.published_date + ")" : "";
+              var link = s.url ? '<a class="source-link" href="' + s.url + '" target="_blank">' + t.sourceLink + '</a>' : "";
+              return '<div class="source-item">· ' + name + date + ' ' + link + '</div>';
+            }).join("");
+            var srcDiv = document.createElement("div");
+            srcDiv.className = "sources";
+            srcDiv.innerHTML = '<div class="source-label">' + t.sourceLabel + '</div>' + items;
+            div.appendChild(srcDiv);
+          }
+          btn.disabled = false;
+          chatArea.scrollTop = chatArea.scrollHeight;
+          return;
+        }
+
+        buffer += decoder.decode(result.value, {stream: true});
+        var lines = buffer.split("\n");
+        buffer = lines.pop();
+
+        lines.forEach(function(line) {
+          if (line.startsWith("data: ")) {
+            try {
+              var data = JSON.parse(line.slice(6));
+              if (data.type === "sources") {
+                sourcesData = data.sources;
+              } else if (data.type === "text") {
+                fullText += data.text;
+                bubble.textContent = fullText;
+                chatArea.scrollTop = chatArea.scrollHeight;
+              }
+            } catch(e) {}
+          }
+        });
+
+        read();
+      });
     }
+    read();
   })
   .catch(function() {
     var el = document.getElementById(loadingId);
     if (el) el.remove();
     appendMessage("assistant", t.errorServer, t.roleGuide);
-  })
-  .finally(function() {
     btn.disabled = false;
-    chatArea.scrollTop = chatArea.scrollHeight;
   });
 }
 
