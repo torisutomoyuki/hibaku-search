@@ -1,3 +1,4 @@
+from gevent import monkey; monkey.patch_all()
 """
 被爆証言検索 API サーバー
 ========================
